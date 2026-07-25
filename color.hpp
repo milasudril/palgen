@@ -79,6 +79,10 @@ namespace palgen
 	inline constexpr std::string to_string(color<DomainTag> c)
 	{ return std::format("r = {}, g = {}, b = {}", c.r, c.g, c.b); }
 
+	template<class DomainTag>
+	inline constexpr auto largest_component(color<DomainTag> c)
+	{ return std::max(std::max(c.r, c.g), c.b); }
+
 	using linear_color = color<linear_tag>;
 
 	inline constexpr linear_color white{
@@ -100,7 +104,7 @@ namespace palgen
 	constexpr color<TargetTag> convert(linear_color input) = delete;
 
 	template<>
-	constexpr  color<srgb_tag> convert<srgb_tag>(linear_color input)
+	constexpr color<srgb_tag> convert<srgb_tag>(linear_color input)
 	{
 		return color<srgb_tag>{
 			.r = linear_to_srgb(input.r),
@@ -149,6 +153,17 @@ namespace palgen
 		target_intensity = std::clamp(target_intensity, input_intensity, intensity_white);
 		auto const t  = (target_intensity - input_intensity)/(intensity_white - input_intensity);
 		return t*white + (1.0f - t)*input;
+	}
+
+	template<linear_color Weights>
+	constexpr linear_color normalize(linear_color input, intensity<Weights> target_intensity)
+	{
+		using intensity_type = intensity<Weights>;
+		auto const tmp = input*(target_intensity/intensity_type{input});
+		auto const maxval = largest_component(tmp);
+		if(maxval > 1.0f)
+		{ return brighten(tmp/maxval, target_intensity); }
+		return tmp;
 	}
 };
 

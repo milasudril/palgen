@@ -162,3 +162,61 @@ TESTCASE(palgen_brighten_target_intensity_above_white_intensity_clamps_to_white)
 		EXPECT_EQ(res, palgen::white);
 	}
 }
+
+TESTCASE(palgen_normalize_to_intensity_below_max_intensity_scales_linearly)
+{
+	using intensity = palgen::intensity<palgen::linear_color{0.5f, 0.25f, 0.125f}>;
+
+	auto const input = palgen::linear_color{
+		.r = 0.25f,
+		.g = 0.5f,
+		.b = 0.75f
+	};
+
+	EXPECT_EQ(2.0f*intensity{input}, intensity{2.0f*input});
+
+	{
+		auto const res = normalize(input, 1.25f*intensity{input});
+		intensity const i_out{res};
+		EXPECT_EQ(
+			res,
+			(
+				palgen::linear_color{
+					.r = 0.3125,
+					.g = 0.625f,
+					.b = 0.9375f
+				}
+			)
+		);
+
+		EXPECT_EQ(res.r/input.r, res.g/input.g);
+		EXPECT_EQ(res.g/input.g, res.b/input.b);
+		EXPECT_EQ(res.b/input.b, res.r/input.r);
+	}
+}
+
+TESTCASE(palgen_normalize_to_intensity_above_max_intensity_scales_brightens)
+{
+	using intensity = palgen::intensity<palgen::white>;
+
+	auto const input = palgen::linear_color{
+		.r = 1.0f,
+		.g = 0.0f,
+		.b = 0.0f
+	};
+
+	{
+		auto const res = normalize(input, intensity{2.0f});
+		intensity const i_out{res};
+		EXPECT_EQ(
+			res,
+			(
+				palgen::linear_color{
+					.r = 1.0f,
+					.g = 0.5f,
+					.b = 0.5f
+				}
+			)
+		);
+	}
+}
