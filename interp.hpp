@@ -2,6 +2,7 @@
 #define PALGEN_INTERP_HPP
 
 #include <ranges>
+#include <cmath>
 
 namespace palgen
 {
@@ -19,6 +20,23 @@ namespace palgen
 		auto const t = x - static_cast<float>(x_0);
 		return (1.0f - t)*left + t*right;
 	}
+
+	struct periodic_boundary_sampling_policy
+	{
+		constexpr float operator()(float param, std::size_t n) const noexcept
+		{
+			auto const fn = static_cast<float>(n);
+			auto wrapped = param - std::floor(param / fn) * fn;
+			if (wrapped >= fn)
+			{ wrapped = 0.0f; }
+			return wrapped;
+    }
+
+		constexpr std::size_t operator()(std::size_t index, std::size_t n) const noexcept
+		{
+			return (index >= n) ? (index - n) : index;
+		}
+	};
 }
 
 #endif
