@@ -76,8 +76,8 @@ namespace palgen
 	};
 
 	template<class DomainTag>
-	inline constexpr std::string to_string(color<DomainTag> c)
-	{ return std::format("r = {}, g = {}, b = {}", c.r, c.g, c.b); }
+	inline std::string to_string(color<DomainTag> c)
+	{ return std::format("unknown_rgb({}, {}, {})", c.r, c.g, c.b); }
 
 	template<class DomainTag>
 	inline constexpr auto largest_component(color<DomainTag> c)
@@ -90,6 +90,9 @@ namespace palgen
 		.g = 1.0f,
 		.b = 1.0f
 	};
+
+	inline std::string to_string(linear_color c)
+	{ return std::format("linrgb({}, {}, {})", c.r, c.g, c.b); }
 
 	inline constexpr linear_color gray = 0.5f*white;
 
@@ -113,6 +116,16 @@ namespace palgen
 			.g = linear_to_srgb(input.g),
 			.b = linear_to_srgb(input.b)
 		};
+	}
+
+	inline std::string to_string(color<srgb_tag> c)
+	{
+		return std::format(
+			"#{:02X}{:02X}{:02X}",
+			static_cast<int>(255.0f*c.r),
+			static_cast<int>(255.0f*c.g),
+			static_cast<int>(255.0f*c.b)
+		);
 	}
 
 	template<linear_color Weights>
