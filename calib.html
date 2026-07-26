@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>palgen weights calibration utility</title>
+
+	<meta name="description" content="A utility demonstrating the difference in perceived intensity of color channels">
+
+	<script type="text/javascript"><!--
+function linear_to_srgb(x)
+{
+	return x <= 0.00031308? 12.92*x: (x == 1.0? 1.0 : 1.055*Math.pow(x, 1.0/2.4) - 0.055);
+}
+
+function update(src_element, color_view, color_vec)
+{
+	const color_val = src_element.value;
+	const color_val_srgb = 255*linear_to_srgb(color_val)
+	const red = color_vec[0]*color_val_srgb;
+	const green = color_vec[1]*color_val_srgb;
+	const blue = color_vec[2]*color_val_srgb;
+	color_view.style.backgroundColor = `RGB(${red}, ${green}, ${blue})`
+}
+
+
+function update_red()
+{
+	update(
+		document.getElementById("red_slider"),
+		document.getElementById("red_box"),
+		[1.0, 0.0, 0.0]
+	);
+
+	const r = document.getElementById("red_slider").value;
+	const g = document.getElementById("green_slider").value;
+	document.getElementById("w_red").innerText = g/r;
+}
+
+
+function update_green()
+{
+	update(
+		document.getElementById("green_slider"),
+		document.getElementById("green_box"),
+		[0.0, 1.0, 0.0]
+	)
+
+	const r = document.getElementById("red_slider").value;
+	const g = document.getElementById("green_slider").value;
+	document.getElementById("w_red").innerText = g/r;
+	document.getElementById("w_green").innerText = g/g;
+	document.getElementById("w_blue").innerText = g;
+}
+
+function init()
+{
+	update_red();
+	update_green();
+}
+
+	//--></script>
+
+	<style type="text/css"><!--
+	body{
+		background-color: #ffffff;
+		color: #000000;
+		font-family: "Andika", sans-serif;
+	}
+
+	#calutil{
+		width:100%;
+		height: min(50vw, 512px);
+	}
+
+	#header_row,#input_row,#output_row  {
+		height: 1px
+	}
+
+	#color_row{
+		background-color: #0000FF;
+		height: 100%
+	}
+
+	#color_row td {
+		position: relative;
+		text-align: center;
+		vertical-align: middle;
+	}
+
+	input[type="range"]{
+		width:75%;
+		accent-color: #808080
+	}
+
+	.colorbox{
+		width: 50%;
+		height: 50%;
+		display: inline-flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	table#calutil td{
+		text-align:center
+	}
+
+	table#res_table td{
+		text-align:left
+	}
+
+	.sample_text{
+		font-size: clamp(1rem, 4.5vw, 2rem);
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 100%;
+		pointer-events: none;
+	}
+	-->
+	</style>
+</head>
+<body onload="init()">
+	<main>
+		<section>
+			<h1>Intensity calibration utility</h1>
+			<p>This is a utility that demonstrates the difference in the perceived intensity between color channels. Use the sliders to match the intensity of red and green so they match the intensity of the surrounding blue field.</p>
+
+			<table id="calutil">
+				<tr id="header_row"><th>Red</th><th>Green</th></tr>
+				<tr id="color_row">
+					<td>
+						<div class="colorbox" id="red_box">
+							<span class="sample_text">Equally readable on blue and red</span>
+						</div>
+					</td>
+					<td>
+						<div class="colorbox" id="green_box">
+							<span class="sample_text">Equally readable on blue and green</span>
+						</div>
+					</td>
+				</tr>
+				<tr id="input_row">
+					<td><input type="range" id="red_slider" min="0" max="1" value="0.5" step="any" oninput="update_red()"></td>
+					<td><input type="range" id="green_slider" min="0" max="1" value="0.5" step="any" oninput="update_green()"></td>
+				</tr>
+			</table>
+
+			<h2>Current weights with green normalized to 1</h2>
+			<table id="res_table">
+				<tr><td>Red</td><td id="w_red"></td></tr>
+				<tr><td>Green</td><td id="w_green"></td></tr>
+				<tr><td>Blue</td><td id="w_blue"></td></tr>
+			</table>
+		</section>
+	</main>
+	<footer>
+		<p>&copy; 2026 Torbjörn Rathsman</p>
+	</footer>
+</body>
+</html>
