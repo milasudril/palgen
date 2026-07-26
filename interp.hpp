@@ -21,7 +21,7 @@ namespace palgen
 		return (1.0f - t)*left + t*right;
 	}
 
-	struct periodic_boundary_sampling_policy
+	struct wrap_around_at_boundary
 	{
 		constexpr float operator()(float param, std::size_t n) const noexcept
 		{
