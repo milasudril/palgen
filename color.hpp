@@ -177,7 +177,11 @@ namespace palgen
 	}
 
 	constexpr linear_color desaturate(linear_color input, float amount)
-	{ return amount*gray + (1.0f - amount)*input; }
+	{
+		amount = std::clamp(amount, 0.0f, 1.0f);
+		return amount*gray + (1.0f - amount)*input;
+
+	}
 };
 
 #endif
