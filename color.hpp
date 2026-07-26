@@ -147,6 +147,14 @@ namespace palgen
 		float m_value;
 	};
 
+	using perceptual_color_intensity = intensity<
+		linear_color{
+			.r = 0.5673828125f,
+			.g = 1.0f,
+			.b = 0.060546875f
+		}
+	>;
+
 	template<linear_color Weights>
 	constexpr linear_color brighten(linear_color input, intensity<Weights> target_intensity)
 	{
