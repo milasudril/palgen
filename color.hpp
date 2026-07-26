@@ -91,6 +91,8 @@ namespace palgen
 		.b = 1.0f
 	};
 
+	inline constexpr linear_color gray = 0.5f*white;
+
 	inline constexpr linear_color black{};
 
 	struct srgb_tag{};
@@ -165,6 +167,9 @@ namespace palgen
 		{ return brighten(tmp/maxval, target_intensity); }
 		return tmp;
 	}
+
+	constexpr linear_color desaturate(linear_color input, float amount)
+	{ return amount*gray + (1.0f - amount)*input; }
 };
 
 #endif
