@@ -14,9 +14,14 @@ function linear_to_srgb(x)
 	return x <= 0.00031308? 12.92*x: (x == 1.0? 1.0 : 1.055*Math.pow(x, 1.0/2.4) - 0.055);
 }
 
+function stops_to_intensity(value)
+{
+	return Math.exp(8*(value - 1) * Math.log(2));
+}
+
 function update(src_element, color_view, color_vec)
 {
-	const color_val = src_element.value;
+	const color_val = stops_to_intensity(src_element.value);
 	const color_val_srgb = 255*linear_to_srgb(color_val)
 	const red = color_vec[0]*color_val_srgb;
 	const green = color_vec[1]*color_val_srgb;
@@ -33,8 +38,8 @@ function update_red()
 		[1.0, 0.0, 0.0]
 	);
 
-	const r = document.getElementById("red_slider").value;
-	const g = document.getElementById("green_slider").value;
+	const r = stops_to_intensity(document.getElementById("red_slider").value);
+	const g = stops_to_intensity(document.getElementById("green_slider").value);
 	document.getElementById("w_red").innerText = g/r;
 }
 
@@ -47,8 +52,8 @@ function update_green()
 		[0.0, 1.0, 0.0]
 	)
 
-	const r = document.getElementById("red_slider").value;
-	const g = document.getElementById("green_slider").value;
+	const r = stops_to_intensity(document.getElementById("red_slider").value);
+	const g = stops_to_intensity(document.getElementById("green_slider").value);
 	document.getElementById("w_red").innerText = g/r;
 	document.getElementById("w_green").innerText = g/g;
 	document.getElementById("w_blue").innerText = g;
