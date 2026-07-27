@@ -128,7 +128,20 @@ namespace palgen
 		);
 	}
 
-	template<linear_color Weights>
+	struct intensity_weights
+	{
+    constexpr explicit intensity_weights(float r, float g, float b):
+        r{r/(r + g + b)},
+        g{g/(r + g + b)},
+        b{b/(r + g + b)}
+    {}
+
+    float const r;
+    float const g;
+    float const b;
+	};
+
+	template<intensity_weights Weights>
 	class intensity
 	{
 	public:
@@ -160,15 +173,27 @@ namespace palgen
 		float m_value;
 	};
 
+	template<intensity_weights Weights>
+	std::string to_string(intensity<Weights> i)
+	{ return std::format("{}", static_cast<float>(i)); }
+
 	using perceptual_color_intensity = intensity<
-		linear_color{
-			.r = 0.5673828125f,
-			.g = 1.0f,
-			.b = 0.060546875f
+		intensity_weights{
+			0.5673828125f,
+			1.0f,
+			0.060546875f
 		}
 	>;
 
-	template<linear_color Weights>
+	using unweighted_intensity = intensity<
+		intensity_weights{
+			1.0f,
+			1.0f,
+			1.0f
+		}
+	>;
+
+	template<intensity_weights Weights>
 	constexpr linear_color brighten(linear_color input, intensity<Weights> target_intensity)
 	{
 		intensity<Weights> const input_intensity{input};
@@ -178,7 +203,7 @@ namespace palgen
 		return t*white + (1.0f - t)*input;
 	}
 
-	template<linear_color Weights>
+	template<intensity_weights Weights>
 	constexpr linear_color normalize(linear_color input, intensity<Weights> target_intensity)
 	{
 		using intensity_type = intensity<Weights>;

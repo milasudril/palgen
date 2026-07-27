@@ -83,9 +83,16 @@ TESTCASE(palgen_convert_linear_to_srgb)
 	}
 }
 
+TESTCASE(palgen_intensity_of_white_is_1)
+{
+	using intensity = palgen::intensity<palgen::intensity_weights{1.0f, 0.5f, 0.25f}>;
+	intensity const i{palgen::white};
+	EXPECT_LT(std::abs(i - 1.0f), 1.0e-5f);
+}
+
 TESTCASE(palgen_brighten_target_intensity_within_range)
 {
-	using intensity = palgen::intensity<palgen::linear_color{1.0f, 0.5f, 0.25f}>;
+	using intensity = palgen::intensity<palgen::intensity_weights{1.0f, 0.5f, 0.25f}>;
 
 	auto const input = palgen::linear_color{
 		.r = 0.25f,
@@ -94,22 +101,24 @@ TESTCASE(palgen_brighten_target_intensity_within_range)
 	};
 
 	intensity const i_in{input};
-	EXPECT_EQ(i_in, 0.25f + 0.25f + 0.1875);
+	auto const expected_input_intensity = (0.25f + 0.25f + 0.1875)/(1.0f + 0.5f + 0.25f);
+	EXPECT_GT(i_in, expected_input_intensity - 1.0f/1024.0f);
+	EXPECT_LT(i_in, expected_input_intensity + 1.0f/1024.0f);
 
 	auto const res = brighten(
 		input,
-		intensity{1.0f}
+		intensity{1.0f/(1.0f + 0.5f + 0.25f)}
 	);
 
 	intensity const i_out{res};
-	EXPECT_EQ(i_out, 1.0f);
+	EXPECT_EQ(i_out, 1.0f/(1.0f + 0.5f + 0.25f));
 	EXPECT_EQ(
 		res,
 		(
 			palgen::linear_color{
-				.r = 0.47058824f,
+				.r = 0.4705882f,
 				.g = 0.64705884f,
-				.b = 0.82352936f
+				.b = 0.8235294f
 			}
 		)
 	);
@@ -117,7 +126,7 @@ TESTCASE(palgen_brighten_target_intensity_within_range)
 
 TESTCASE(palgen_brighten_target_intensity_below_input_intensity_keeps_value)
 {
-	using intensity = palgen::intensity<palgen::linear_color{1.0f, 0.5f, 0.25f}>;
+	using intensity = palgen::intensity<palgen::intensity_weights{1.0f, 0.5f, 0.25f}>;
 
 	auto const input = palgen::linear_color{
 		.r = 0.25f,
@@ -126,7 +135,9 @@ TESTCASE(palgen_brighten_target_intensity_below_input_intensity_keeps_value)
 	};
 
 	intensity const i_in{input};
-	EXPECT_EQ(i_in, 0.25f + 0.25f + 0.1875);
+	auto const expected_input_intensity = (0.25f + 0.25f + 0.1875)/(1.0f + 0.5f + 0.25f);
+	EXPECT_GT(i_in, expected_input_intensity - 1.0f/1024.0f);
+	EXPECT_LT(i_in, expected_input_intensity + 1.0f/1024.0f);
 
 	auto const res = brighten(input, 0.5f*i_in);
 
@@ -137,7 +148,7 @@ TESTCASE(palgen_brighten_target_intensity_below_input_intensity_keeps_value)
 
 TESTCASE(palgen_brighten_target_intensity_above_white_intensity_clamps_to_white)
 {
-	using intensity = palgen::intensity<palgen::linear_color{1.0f, 0.5f, 0.25f}>;
+	using intensity = palgen::intensity<palgen::intensity_weights{1.0f, 0.5f, 0.25f}>;
 
 	auto const input = palgen::linear_color{
 		.r = 0.25f,
@@ -146,7 +157,9 @@ TESTCASE(palgen_brighten_target_intensity_above_white_intensity_clamps_to_white)
 	};
 
 	intensity const i_in{input};
-	EXPECT_EQ(i_in, 0.25f + 0.25f + 0.1875);
+	auto const expected_input_intensity = (0.25f + 0.25f + 0.1875)/(1.0f + 0.5f + 0.25f);
+	EXPECT_GT(i_in, expected_input_intensity - 1.0f/1024.0f);
+	EXPECT_LT(i_in, expected_input_intensity + 1.0f/1024.0f);
 
 	intensity const i_white{palgen::white};
 
@@ -165,7 +178,7 @@ TESTCASE(palgen_brighten_target_intensity_above_white_intensity_clamps_to_white)
 
 TESTCASE(palgen_normalize_to_intensity_below_max_intensity_scales_linearly)
 {
-	using intensity = palgen::intensity<palgen::linear_color{0.5f, 0.25f, 0.125f}>;
+	using intensity = palgen::intensity<palgen::intensity_weights{0.5f, 0.25f, 0.125f}>;
 
 	auto const input = palgen::linear_color{
 		.r = 0.25f,
@@ -197,7 +210,7 @@ TESTCASE(palgen_normalize_to_intensity_below_max_intensity_scales_linearly)
 
 TESTCASE(palgen_normalize_to_intensity_above_max_intensity_scales_brightens)
 {
-	using intensity = palgen::intensity<palgen::white>;
+	using intensity = palgen::unweighted_intensity;
 
 	auto const input = palgen::linear_color{
 		.r = 1.0f,
@@ -206,15 +219,15 @@ TESTCASE(palgen_normalize_to_intensity_above_max_intensity_scales_brightens)
 	};
 
 	{
-		auto const res = normalize(input, intensity{2.0f});
+		auto const res = normalize(input, intensity{2.0f/3.0f});
 		intensity const i_out{res};
 		EXPECT_EQ(
 			res,
 			(
 				palgen::linear_color{
 					.r = 1.0f,
-					.g = 0.5f,
-					.b = 0.5f
+					.g = 0.50000006f,
+					.b = 0.50000006f
 				}
 			)
 		);
