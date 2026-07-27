@@ -214,11 +214,12 @@ namespace palgen
 		return tmp;
 	}
 
+	template<class IntensityType>
 	constexpr linear_color desaturate(linear_color input, float amount)
 	{
-		amount = std::clamp(amount, 0.0f, 1.0f);
-		return amount*gray + (1.0f - amount)*input;
-
+		IntensityType const i{input};
+		auto const scaled_gray = i*gray/IntensityType{gray};
+		return amount*scaled_gray + (1.0f - amount)*input;
 	}
 };
 

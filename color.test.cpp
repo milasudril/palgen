@@ -233,3 +233,19 @@ TESTCASE(palgen_normalize_to_intensity_above_max_intensity_scales_brightens)
 		);
 	}
 }
+
+TESTCASE(palgen_desaturate)
+{
+	auto const res = desaturate<palgen::unweighted_intensity>(
+		palgen::linear_color{
+			.r = 1.0f,
+			.g = 0.0f,
+			.b = 0.0f
+		},
+		0.5f
+	);
+
+	EXPECT_EQ(palgen::unweighted_intensity{res}, 1.0f/3.0f);
+
+	EXPECT_EQ(res, (palgen::linear_color{2.0f/3.0f, 1.0f/6.0f, 1.0f/6.0f}));
+}
