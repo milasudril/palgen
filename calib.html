@@ -9,6 +9,8 @@
 	<meta name="description" content="A utility demonstrating the difference in perceived intensity of color channels">
 
 	<script type="text/javascript"><!--
+"use strict"
+
 function linear_to_srgb(x)
 {
 	return x <= 0.00031308? 12.92*x: (x == 1.0? 1.0 : 1.055*Math.pow(x, 1.0/2.4) - 0.055);
@@ -19,50 +21,85 @@ function stops_to_intensity(value)
 	return Math.exp(8*(value - 1) * Math.log(2));
 }
 
-function update(src_element, color_view, color_vec)
+function make_rgb_string(linear_intensity, rgb_vec)
 {
-	const color_val = stops_to_intensity(src_element.value);
-	const color_val_srgb = 255*linear_to_srgb(color_val)
-	const red = color_vec[0]*color_val_srgb;
-	const green = color_vec[1]*color_val_srgb;
-	const blue = color_vec[2]*color_val_srgb;
-	color_view.style.backgroundColor = `RGB(${red}, ${green}, ${blue})`
+	const color_val = 255*linear_to_srgb(linear_intensity)
+	const red = rgb_vec[0]*color_val;
+	const green = rgb_vec[1]*color_val;
+	const blue = rgb_vec[2]*color_val;
+	return `RGB(${red}, ${green}, ${blue})`;
 }
 
-
-function update_red()
+class color_calibrator
 {
-	update(
-		document.getElementById("red_slider"),
-		document.getElementById("red_box"),
-		[1.0, 0.0, 0.0]
+	constructor(min_widget, max_widget, weight_widget, rgb_vec)
+	{
+		this.min_widget = min_widget;
+		this.max_widget = max_widget;
+		this.weight_widget = weight_widget;
+		this.rgb_vec = rgb_vec;
+		this.set_current_min(0.0);
+		this.set_current_max(1.0);
+
+		const self = this;
+		this.min_widget.onclick = function() {
+			const mid = 0.5*(self.current_min + self.current_max);
+			self.set_current_max(mid);
+		};
+		this.max_widget.onclick = function() {
+			const mid = 0.5*(self.current_min + self.current_max);
+			self.set_current_min(mid);
+		};
+	}
+
+	set_current_min(value)
+	{
+		this.current_min = value;
+		this.min_widget.style.color = make_rgb_string(
+			this.current_min,
+			this.rgb_vec
+		);
+		this.weight_widget.innerText = 0.5*(this.current_min + this.current_max);
+	}
+
+	set_current_max(value)
+	{
+		this.current_max = value;
+		this.max_widget.style.color = make_rgb_string(
+			this.current_max,
+			this.rgb_vec
+		);
+		this.weight_widget.innerText = 0.5*(this.current_min + this.current_max);
+	}
+};
+
+let green_color_calibrator = null
+let red_color_calibrator = null
+
+function init_green()
+{
+	green_color_calibrator = new color_calibrator(
+		document.getElementById("green_min"),
+		document.getElementById("green_max"),
+		document.getElementById("green_weight"),
+		[0, 1, 0]
 	);
-
-	const r = stops_to_intensity(document.getElementById("red_slider").value);
-	const g = stops_to_intensity(document.getElementById("green_slider").value);
-	document.getElementById("w_red").innerText = g/r;
 }
 
-
-function update_green()
+function init_red()
 {
-	update(
-		document.getElementById("green_slider"),
-		document.getElementById("green_box"),
-		[0.0, 1.0, 0.0]
-	)
-
-	const r = stops_to_intensity(document.getElementById("red_slider").value);
-	const g = stops_to_intensity(document.getElementById("green_slider").value);
-	document.getElementById("w_red").innerText = g/r;
-	document.getElementById("w_green").innerText = g/g;
-	document.getElementById("w_blue").innerText = g;
+	red_color_calibrator = new color_calibrator(
+		document.getElementById("red_min"),
+		document.getElementById("red_max"),
+		document.getElementById("red_weight"),
+		[1, 0, 0]
+	);
 }
 
 function init()
 {
-	update_red();
-	update_green();
+	init_green();
+	init_red();
 }
 
 	//--></script>
@@ -74,92 +111,47 @@ function init()
 		font-family: "Andika", sans-serif;
 	}
 
-	#calutil{
-		width:100%;
-		height: min(50vw, 512px);
-	}
-
-	#header_row,#input_row,#output_row  {
-		height: 1px
-	}
-
-	#color_row{
-		background-color: #0000FF;
-		height: 100%
-	}
-
-	#color_row td {
-		position: relative;
-		text-align: center;
-		vertical-align: middle;
-	}
-
-	input[type="range"]{
-		width:75%;
-		accent-color: #808080
-	}
-
-	.colorbox{
-		width: 50%;
-		height: 50%;
-		display: inline-flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	table#calutil td{
-		text-align:center
-	}
-
-	table#res_table td{
-		text-align:left
-	}
-
-	.sample_text{
-		font-size: clamp(1rem, 4.5vw, 2rem);
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		width: 100%;
-		pointer-events: none;
-		color:color(srgb-linear 0.5 0.5 0.5)
-	}
+	.bluetable{background-color: #0000ff; font-size:2em; text-align:center}
 	-->
 	</style>
 </head>
 <body onload="init()">
 	<main>
+		<h1>Intensity calibration utility</h1>
+		<p>This is a utility that demonstrates the difference in the perceived intensity between color channels. In each section, click on the text that is more difficult to read</p>
+
 		<section>
-			<h1>Intensity calibration utility</h1>
-			<p>This is a utility that demonstrates the difference in the perceived intensity between color channels. Use the sliders to match the intensity of red and green so they match the intensity of the surrounding blue field.</p>
-
-			<table id="calutil">
-				<tr id="header_row"><th>Red</th><th>Green</th></tr>
-				<tr id="color_row">
-					<td>
-						<div class="colorbox" id="red_box">
-							<span class="sample_text">Equally readable on blue and red</span>
-						</div>
-					</td>
-					<td>
-						<div class="colorbox" id="green_box">
-							<span class="sample_text">Equally readable on blue and green</span>
-						</div>
-					</td>
-				</tr>
-				<tr id="input_row">
-					<td><input type="range" id="red_slider" min="0" max="1" value="0.5" step="any" oninput="update_red()"></td>
-					<td><input type="range" id="green_slider" min="0" max="1" value="0.5" step="any" oninput="update_green()"></td>
+			<h2>Green on blue calibration</h2>
+			<table class="bluetable">
+				<tr>
+					<td id="green_min">Jackdaws love my big<br>sphinx of quartz</td>
+					<td id="green_max">Jackdaws love my big<br>sphinx of quartz</td>
 				</tr>
 			</table>
+			<input type="button" value="Reset" onclick="init_green()">
+		</section>
 
-			<h2>Current weights with green normalized to 1</h2>
-			<table id="res_table">
-				<tr><td>Red</td><td id="w_red"></td></tr>
-				<tr><td>Green</td><td id="w_green"></td></tr>
-				<tr><td>Blue</td><td id="w_blue"></td></tr>
+		<section>
+			<h2>Red on blue calibration</h2>
+			<table class="bluetable">
+				<tr>
+					<td id="red_min">Jackdaws love my big<br>sphinx of quartz</td>
+					<td id="red_max">Jackdaws love my big<br>sphinx of quartz</td>
+				</tr>
 			</table>
+			<input type="button" value="Reset" onclick="init_red()">
+		</section>
+
+		<section>
+			<h2>Result</h2>
+			<p>These are the resulting weights</p>
+			<table>
+			<tr><td><b>Red:</b></td><td id="red_weight"></td></tr>
+			<tr><td><b>Green:</b></td><td id="green_weight"></td></tr>
+			<tr><td><b>Blue:</b></td><td id="blue_weight">1</td></tr>
+			</table>
+
+			<input type="button" value="Reset" onclick="init()">
 		</section>
 	</main>
 	<footer>
