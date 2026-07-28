@@ -105,13 +105,14 @@ function init()
 	//--></script>
 
 	<style type="text/css"><!--
-	body{
-		background-color: #ffffff;
-		color: #000000;
-		font-family: "Andika", sans-serif;
-	}
+body{
+	background-color: #ffffff;
+	color: #000000;
+	font-family: "Andika", sans-serif;
+}
 
-	.bluetable{background-color: #0000ff; font-size:2em; text-align:center}
+.bluetable{background-color: #0000ff; font-size:2em; text-align:center}
+.control{ cursor: pointer; }
 	-->
 	</style>
 </head>
@@ -124,8 +125,8 @@ function init()
 			<h2>Green on blue calibration</h2>
 			<table class="bluetable">
 				<tr>
-					<td id="green_min">Jackdaws love my big<br>sphinx of quartz</td>
-					<td id="green_max">Jackdaws love my big<br>sphinx of quartz</td>
+					<td id="green_min" class="control">Jackdaws love my big<br>sphinx of quartz</td>
+					<td id="green_max" class="control">Jackdaws love my big<br>sphinx of quartz</td>
 				</tr>
 			</table>
 			<input type="button" value="Reset" onclick="init_green()">
@@ -135,8 +136,8 @@ function init()
 			<h2>Red on blue calibration</h2>
 			<table class="bluetable">
 				<tr>
-					<td id="red_min">Jackdaws love my big<br>sphinx of quartz</td>
-					<td id="red_max">Jackdaws love my big<br>sphinx of quartz</td>
+					<td id="red_min" class="control">Jackdaws love my big<br>sphinx of quartz</td>
+					<td id="red_max" class="control">Jackdaws love my big<br>sphinx of quartz</td>
 				</tr>
 			</table>
 			<input type="button" value="Reset" onclick="init_red()">
