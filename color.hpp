@@ -94,8 +94,6 @@ namespace palgen
 	inline std::string to_string(linear_color c)
 	{ return std::format("linrgb({}, {}, {})", c.r, c.g, c.b); }
 
-	inline constexpr linear_color gray = 0.5f*white;
-
 	inline constexpr linear_color black{};
 
 	struct srgb_tag{};
@@ -218,7 +216,7 @@ namespace palgen
 	constexpr linear_color desaturate(linear_color input, float amount)
 	{
 		IntensityType const i{input};
-		auto const scaled_gray = i*gray/IntensityType{gray};
+		auto const scaled_gray = i*white;
 		return amount*scaled_gray + (1.0f - amount)*input;
 	}
 };
