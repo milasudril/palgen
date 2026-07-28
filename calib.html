@@ -59,7 +59,7 @@ class color_calibrator
 			this.current_min,
 			this.rgb_vec
 		);
-		this.weight_widget.innerText = 0.5*(this.current_min + this.current_max);
+		this.weight_widget.innerText = 1.0/(0.5*(this.current_min + this.current_max));
 	}
 
 	set_current_max(value)
@@ -69,7 +69,7 @@ class color_calibrator
 			this.current_max,
 			this.rgb_vec
 		);
-		this.weight_widget.innerText = 0.5*(this.current_min + this.current_max);
+		this.weight_widget.innerText = 1.0/(0.5*(this.current_min + this.current_max));
 	}
 };
 
