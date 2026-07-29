@@ -30,6 +30,8 @@ function make_rgb_string(linear_intensity, rgb_vec)
 	return `RGB(${red}, ${green}, ${blue})`;
 }
 
+const invphi = (Math.sqrt(5) - 1.0)/2.0;
+
 class color_calibrator
 {
 	constructor(min_widget, max_widget, weight_widget, rgb_vec)
@@ -38,42 +40,59 @@ class color_calibrator
 		this.max_widget = max_widget;
 		this.weight_widget = weight_widget;
 		this.rgb_vec = rgb_vec;
+		this.current_min = 0.0;
+		this.current_max = 1.0;
 		this.set_current_min(0.0);
 		this.set_current_max(1.0);
 
 		const self = this;
 		this.min_widget.onclick = function() {
-			const mid = 0.5*(self.current_min + self.current_max);
-			self.set_current_max(mid);
+			self.set_current_max(self.current_inner_right);
 		};
 		this.max_widget.onclick = function() {
-			const mid = 0.5*(self.current_min + self.current_max);
-			self.set_current_min(mid);
+			self.set_current_min(self.current_inner_left);
 		};
 	}
 
 	set_current_min(value)
 	{
 		this.current_min = value;
-		this.min_widget.style.color = make_rgb_string(
-			this.current_min,
-			this.rgb_vec
-		);
 		this.weight_widget.innerText =
 			1.0/(0.5*(this.current_min + this.current_max))
 			+ " (" + 1.0/this.current_max + ", " + 1.0/this.current_min + ")";
+
+		const delta = this.current_max - this.current_min;
+		this.set_current_inner_left(this.current_max - invphi*delta);
+		this.set_current_inner_right(this.current_min + invphi*delta);
 	}
 
 	set_current_max(value)
 	{
 		this.current_max = value;
-		this.max_widget.style.color = make_rgb_string(
-			this.current_max,
-			this.rgb_vec
-		);
 		this.weight_widget.innerText =
 			1.0/(0.5*(this.current_min + this.current_max))
 			+ " (" + 1.0/this.current_max + ", " + 1.0/this.current_min + ")";
+		const delta = this.current_max - this.current_min;
+		this.set_current_inner_left(this.current_max - invphi*delta);
+		this.set_current_inner_right(this.current_min + invphi*delta);
+	}
+
+	set_current_inner_left(value)
+	{
+		this.current_inner_left = value;
+		this.min_widget.style.color = make_rgb_string(
+			this.current_inner_left,
+			this.rgb_vec
+		);
+	}
+
+	set_current_inner_right(value)
+	{
+		this.current_inner_right = value;
+		this.max_widget.style.color = make_rgb_string(
+			this.current_inner_right,
+			this.rgb_vec
+		);
 	}
 };
 

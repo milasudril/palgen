@@ -177,8 +177,8 @@ namespace palgen
 
 	using perceptual_color_intensity = intensity<
 		intensity_weights{
-			7.53f,
-			13.5f,
+			8.0f,
+			16.0f,
 			1.0f,
 		}
 	>;
