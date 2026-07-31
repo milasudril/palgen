@@ -16,9 +16,9 @@ function linear_to_srgb(x)
 	return x <= 0.00031308? 12.92*x: (x == 1.0? 1.0 : 1.055*Math.pow(x, 1.0/2.4) - 0.055);
 }
 
-function stops_to_intensity(value)
+function ev_to_intensity(value)
 {
-	return Math.exp(8*(value - 1) * Math.log(2));
+	return Math.exp(value*Math.log(2));
 }
 
 function make_rgb_string(linear_intensity, rgb_vec)
@@ -40,10 +40,10 @@ class color_calibrator
 		this.max_widget = max_widget;
 		this.weight_widget = weight_widget;
 		this.rgb_vec = rgb_vec;
-		this.current_min = 0.0;
-		this.current_max = 1.0;
-		this.set_current_min(0.0);
-		this.set_current_max(1.0);
+		this.current_min = -12.0;
+		this.current_max = 0.0;
+		this.set_current_min(-12.0);
+		this.set_current_max(0.0);
 
 		const self = this;
 		this.min_widget.onclick = function() {
@@ -57,9 +57,7 @@ class color_calibrator
 	set_current_min(value)
 	{
 		this.current_min = value;
-		this.weight_widget.innerText =
-			1.0/(0.5*(this.current_min + this.current_max))
-			+ " (" + 1.0/this.current_max + ", " + 1.0/this.current_min + ")";
+		this.weight_widget.innerText = ev_to_intensity(-0.5*(this.current_min + this.current_max));
 
 		const delta = this.current_max - this.current_min;
 		this.set_current_inner_left(this.current_max - invphi*delta);
@@ -69,9 +67,8 @@ class color_calibrator
 	set_current_max(value)
 	{
 		this.current_max = value;
-		this.weight_widget.innerText =
-			1.0/(0.5*(this.current_min + this.current_max))
-			+ " (" + 1.0/this.current_max + ", " + 1.0/this.current_min + ")";
+		this.weight_widget.innerText = ev_to_intensity(-0.5*(this.current_min + this.current_max));
+
 		const delta = this.current_max - this.current_min;
 		this.set_current_inner_left(this.current_max - invphi*delta);
 		this.set_current_inner_right(this.current_min + invphi*delta);
@@ -81,7 +78,7 @@ class color_calibrator
 	{
 		this.current_inner_left = value;
 		this.min_widget.style.color = make_rgb_string(
-			this.current_inner_left,
+			ev_to_intensity(this.current_inner_left),
 			this.rgb_vec
 		);
 	}
@@ -90,7 +87,7 @@ class color_calibrator
 	{
 		this.current_inner_right = value;
 		this.max_widget.style.color = make_rgb_string(
-			this.current_inner_right,
+			ev_to_intensity(this.current_inner_right),
 			this.rgb_vec
 		);
 	}
