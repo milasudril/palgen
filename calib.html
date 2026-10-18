@@ -18,7 +18,7 @@ function linear_to_srgb(x)
 
 function ev_to_intensity(value)
 {
-	return Math.exp(value*Math.log(2));
+	return Math.exp(value*Math.LN2);
 }
 
 function make_rgb_string(linear_intensity, rgb_vec)
@@ -27,99 +27,27 @@ function make_rgb_string(linear_intensity, rgb_vec)
 	const red = rgb_vec[0]*color_val;
 	const green = rgb_vec[1]*color_val;
 	const blue = rgb_vec[2]*color_val;
-	return `RGB(${red}, ${green}, ${blue})`;
+	return `rgb(${red}, ${green}, ${blue})`;
 }
 
-const invphi = (Math.sqrt(5) - 1.0)/2.0;
-
-class color_calibrator
+function update_red()
 {
-	constructor(min_widget, max_widget, weight_widget, rgb_vec)
-	{
-		this.min_widget = min_widget;
-		this.max_widget = max_widget;
-		this.weight_widget = weight_widget;
-		this.rgb_vec = rgb_vec;
-		this.current_min = -12.0;
-		this.current_max = 0.0;
-		this.set_current_min(-12.0);
-		this.set_current_max(0.0);
-
-		const self = this;
-		this.min_widget.onclick = function() {
-			self.set_current_max(self.current_inner_right);
-		};
-		this.max_widget.onclick = function() {
-			self.set_current_min(self.current_inner_left);
-		};
-	}
-
-	set_current_min(value)
-	{
-		this.current_min = value;
-		this.weight_widget.innerText = ev_to_intensity(-0.5*(this.current_min + this.current_max));
-
-		const delta = this.current_max - this.current_min;
-		this.set_current_inner_left(this.current_max - invphi*delta);
-		this.set_current_inner_right(this.current_min + invphi*delta);
-	}
-
-	set_current_max(value)
-	{
-		this.current_max = value;
-		this.weight_widget.innerText = ev_to_intensity(-0.5*(this.current_min + this.current_max));
-
-		const delta = this.current_max - this.current_min;
-		this.set_current_inner_left(this.current_max - invphi*delta);
-		this.set_current_inner_right(this.current_min + invphi*delta);
-	}
-
-	set_current_inner_left(value)
-	{
-		this.current_inner_left = value;
-		this.min_widget.style.color = make_rgb_string(
-			ev_to_intensity(this.current_inner_left),
-			this.rgb_vec
-		);
-	}
-
-	set_current_inner_right(value)
-	{
-		this.current_inner_right = value;
-		this.max_widget.style.color = make_rgb_string(
-			ev_to_intensity(this.current_inner_right),
-			this.rgb_vec
-		);
-	}
-};
-
-let green_color_calibrator = null
-let red_color_calibrator = null
-
-function init_green()
-{
-	green_color_calibrator = new color_calibrator(
-		document.getElementById("green_min"),
-		document.getElementById("green_max"),
-		document.getElementById("green_weight"),
-		[0, 1, 0]
-	);
+	const weight = ev_to_intensity(document.getElementById("red_on_blue_weight").value);
+	document.getElementById("red_on_blue").style.color = make_rgb_string(weight, [1, 0, 0]);
+	document.getElementById("red_weight").innerHTML = weight;
 }
 
-function init_red()
+function update_green()
 {
-	red_color_calibrator = new color_calibrator(
-		document.getElementById("red_min"),
-		document.getElementById("red_max"),
-		document.getElementById("red_weight"),
-		[1, 0, 0]
-	);
+	const weight = ev_to_intensity(document.getElementById("green_on_blue_weight").value);
+	document.getElementById("green_on_blue").style.color = make_rgb_string(weight, [0, 1, 0]);
+	document.getElementById("green_weight").innerHTML = weight;
 }
 
 function init()
 {
-	init_green();
-	init_red();
+	update_red();
+	update_green()
 }
 
 	//--></script>
@@ -131,36 +59,36 @@ body{
 	font-family: "Andika", sans-serif;
 }
 
-.bluetable{background-color: #0000ff; font-size:2em; text-align:center}
-.control{ cursor: pointer; }
+.bluetable{
+	background-color: #0000ff; font-size:2em; text-align:center;
+}
+
 	-->
 	</style>
 </head>
 <body onload="init()">
 	<main>
 		<h1>Intensity calibration utility</h1>
-		<p>This is a utility that demonstrates the difference in the perceived intensity between color channels. In each section, click on the text that is more difficult to read</p>
+		<p>This is a utility that demonstrates the difference in the perceived intensity between color channels. In each section, adjust the slider to make the text as hard as read as possible.</p>
 
 		<section>
 			<h2>Green on blue calibration</h2>
 			<table class="bluetable">
 				<tr>
-					<td id="green_min" class="control">Jackdaws love my big<br>sphinx of quartz</td>
-					<td id="green_max" class="control">Jackdaws love my big<br>sphinx of quartz</td>
+					<td id="green_on_blue" class="control">Jackdaws love my big<br>sphinx of quartz</td>
 				</tr>
 			</table>
-			<input type="button" value="Reset" onclick="init_green()">
+			<input id="green_on_blue_weight" type="range" min="-12" max="0" value="0.0" step="any" oninput="update_green()">
 		</section>
 
 		<section>
 			<h2>Red on blue calibration</h2>
 			<table class="bluetable">
 				<tr>
-					<td id="red_min" class="control">Jackdaws love my big<br>sphinx of quartz</td>
-					<td id="red_max" class="control">Jackdaws love my big<br>sphinx of quartz</td>
+					<td id="red_on_blue" class="control">Jackdaws love my big<br>sphinx of quartz</td>
 				</tr>
 			</table>
-			<input type="button" value="Reset" onclick="init_red()">
+			<input id="red_on_blue_weight" type="range" min="-12" max="0" value="0.0" step="any" oninput="update_red()">
 		</section>
 
 		<section>
@@ -171,8 +99,6 @@ body{
 			<tr><td><b>Green:</b></td><td id="green_weight"></td></tr>
 			<tr><td><b>Blue:</b></td><td id="blue_weight">1</td></tr>
 			</table>
-
-			<input type="button" value="Reset" onclick="init()">
 		</section>
 	</main>
 	<footer>
