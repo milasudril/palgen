@@ -6,13 +6,23 @@
 #include <random>
 #include <cstdio>
 
+constexpr auto make_colormaps()
+{
+	std::array ret{
+		palgen::fixed_intensity_colormap{palgen::perceptual_color_intensity{0.5f/3.0f}},
+		palgen::fixed_intensity_colormap{palgen::perceptual_color_intensity{1.0f/3.0f}},
+		palgen::fixed_intensity_colormap::make_pastels(
+			palgen::fixed_intensity_colormap{palgen::perceptual_color_intensity{1.0f/3.0f}},
+			palgen::perceptual_color_intensity{2.0f/3.0f}
+		)
+	};
+
+	return ret;
+}
+
 int main()
 {
-	static constexpr std::array colormaps{
-		palgen::fixed_intensity_colormap{palgen::perceptual_color_intensity{0.125f}},
-		palgen::fixed_intensity_colormap{palgen::perceptual_color_intensity{0.25f}},
-		palgen::fixed_intensity_colormap{palgen::perceptual_color_intensity{0.5f}}
-	};
+	static constexpr std::array colormaps = make_colormaps();
 
 	std::uniform_int_distribution<size_t> dist{0, 11};
 	std::random_device rng{"/dev/urandom"};
