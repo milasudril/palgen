@@ -33,15 +33,19 @@ int main()
 		base_index,
 		(base_index + 1)%12,
 		(base_index + 2)%12,
-		(base_index + 6)%12,
+		(base_index + 7)%12,
 		static_cast<size_t>(3),
 		static_cast<size_t>(0),
 		static_cast<size_t>(8)
 	};
 
+	std::uniform_int_distribution<int> swap_dist{0, 1};
+	if(swap_dist(rng) == 1)
+	{ std::swap(indices[0], indices[2]);}
+
 	static constexpr std::array color_names{
-		"primary-color",
 		"analog-color-a",
+		"primary-color",
 		"analog-color-b",
 		"complement-color",
 		"warning-note-color",
